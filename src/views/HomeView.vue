@@ -12,18 +12,25 @@
     <div v-for="name in matchingNames" :key="name">{{ name }}</div>
     <button @click="handleClick">stop</button> -->
 
-    <PostList v-if="showPosts" :posts="posts" />
-    <button @click="showPosts = !showPosts">toggle posts</button>
-    <button @click="posts.pop()">delete a post</button>
+    <div class="home">
+      <div v-if="error">{{ error }}</div>
+      <div v-if="posts.length" class="layout">
+        <PostList :posts="posts" />
+        <TagCloud :posts="posts" />
+      </div>
+      <div v-else><Spinner /></div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, reactive, computed, watch, watchEffect } from "vue";
 import PostList from "../components/PostList.vue";
+import getPosts from "../composables/getPosts";
+import Spinner from "../components/Spinner.vue";
+import TagCloud from "../components/TagCloud.vue";
 export default {
   name: "Home",
-  components: { PostList },
+  components: { PostList, Spinner, TagCloud },
   setup() {
     // #1
     // const ninjaOne = ref({ name: "mario", age: 30 });
@@ -61,17 +68,22 @@ export default {
     // });
 
     // return { names, search, matchingNames };
+    const { posts, error, load } = getPosts();
+    load();
 
-    // #3
-    const posts = ref([
-      { title: "welcome to the blog", body: "lorem ipsum", id: 1 },
-      { title: "top 5 css tips", body: "lorem ipsum", id: 2 },
-    ]);
-    const showPosts = ref(true);
-    return { posts, showPosts };
-  },
-  mounted() {
-    console.log("mounted using options api");
+    return { posts, error };
   },
 };
 </script>
+<style>
+.home {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 20px;
+}
+</style>
