@@ -1,39 +1,35 @@
 import { ref, watchEffect } from "vue";
-import { projectFirestore } from "../firebase/config";
 
-const getCollection = (collection) => {
+// firebase imports
+import { db } from "../firebase/config";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+
+const getCollection = (c, q) => {
   const documents = ref(null);
-  const error = ref(null);
 
-  // register the firestore collection reference
-  let collectionRef = projectFirestore
-    .collection(collection)
-    .orderBy("createdAt");
+  // collection reference
+  let colRef = collection(db, c);
 
-  const unsub = collectionRef.onSnapshot(
-    (snap) => {
-      let results = [];
-      snap.docs.forEach((doc) => {
-        // must wait for the server to create the timestamp & send it back
-        doc.data().createdAt && results.push({ ...doc.data(), id: doc.id });
-      });
+  if (q) {
+    console.log(...q);
+    colRef = query(colRef, where(...q));
+  }
 
-      // update values
-      documents.value = results;
-      error.value = null;
-    },
-    (err) => {
-      console.log(err.message);
-      documents.value = null;
-      error.value = "could not fetch the data";
-    }
-  );
+  const unsub = onSnapshot(colRef, (snapshot) => {
+    let results = [];
+    snapshot.docs.forEach((doc) => {
+      results.push({ ...doc.data(), id: doc.id });
+    });
+
+    // update values
+    documents.value = results;
+  });
 
   watchEffect((onInvalidate) => {
     onInvalidate(() => unsub());
   });
 
-  return { error, documents };
+  return { documents };
 };
 
 export default getCollection;

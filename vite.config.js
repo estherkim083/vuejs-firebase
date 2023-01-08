@@ -14,4 +14,13 @@ export default defineConfig({
   define: {
     "process.env": {},
   },
+  optimizeDeps: {
+    exclude: [
+      "firebase",
+      "firebase/app",
+      "firebase/auth",
+      "firebase/firestore",
+      "firebase/analytics",
+    ],
+  },
 });

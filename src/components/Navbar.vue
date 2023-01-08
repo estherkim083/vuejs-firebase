@@ -1,86 +1,76 @@
 <template>
-  <div class="navbar">
+  <div>
     <nav>
-      <img src="@/assets/ninja.png" />
-      <h1><router-link :to="{ name: 'Home' }">Muso Ninjas</router-link></h1>
-      <div class="links">
-        <div v-if="user">
-          <router-link :to="{ name: 'CreatePlaylist' }"
-            >Create Playlist</router-link
-          >
-          <router-link :to="{ name: 'UserPlaylists' }"
-            >My Playlists</router-link
-          >
-          <span>Hi there, {{ user.displayName }}</span>
-          <button @click="handleClick">Logout</button>
-        </div>
-        <div v-else>
-          <router-link class="btn" :to="{ name: 'Signup' }">Signup</router-link>
-          <router-link class="btn" :to="{ name: 'Login' }">Login</router-link>
-        </div>
+      <h1>My Book List</h1>
+
+      <!-- logged in users -->
+      <div v-if="user">
+        <router-link to="/">Home</router-link>
+        <button @click="handleClick">Logout</button>
+      </div>
+
+      <!-- logged out users -->
+      <div v-if="!user">
+        <router-link to="/login">Login</router-link>
+        <router-link to="/signup">Signup</router-link>
       </div>
     </nav>
+
+    <!-- show user email -->
+    <p v-if="user">logged in as {{ user.email }}</p>
   </div>
 </template>
 
 <script>
-// challenge
-//   - only show the logout button if we are logged in
-//   - only show the signup and login links if we are not logged in
-//   - use the getUser composable to help
-
 import getUser from "../composables/getUser";
-import useLogout from "../composables/useLogout";
 import { useRouter } from "vue-router";
+import { watchEffect } from "vue";
+
+// firebase imports
+import { auth } from "../firebase/config";
+import { signOut } from "firebase/auth";
 
 export default {
   setup() {
     const { user } = getUser();
-    const { logout } = useLogout();
     const router = useRouter();
 
-    const handleClick = async () => {
-      await logout();
-      console.log("logged out");
-      router.push({ name: "Login" });
+    const handleClick = () => {
+      signOut(auth);
     };
+
+    // watchEffect(() => {
+    //   if (!user.value) {
+    //     router.push("/login");
+    //   }
+    // });
 
     return { handleClick, user };
   },
 };
 </script>
 
-<style scoped>
-.navbar {
-  padding: 16px 10px;
-  margin-bottom: 60px;
-  background: white;
-}
+<style>
 nav {
   display: flex;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-nav img {
-  max-height: 60px;
 }
 nav h1 {
-  margin-left: 20px;
+  margin-right: auto;
+  margin-bottom: 0;
 }
-nav .links {
-  margin-left: auto;
-}
-nav .links a,
-button {
+nav a {
   margin-left: 16px;
-  font-size: 14px;
+  color: #2c3e50;
 }
-span {
-  font-size: 14px;
-  display: inline-block;
+nav button {
   margin-left: 16px;
-  padding-left: 16px;
-  border-left: 1px solid #eee;
+}
+nav a.router-link-exact-active {
+  color: #0ec58e;
+}
+nav + p {
+  margin-top: 0;
+  margin-bottom: 30px;
 }
 </style>
